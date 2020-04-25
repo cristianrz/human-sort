@@ -1,6 +1,6 @@
 #!/usr/bin/luajit
 
-local numbers = {"Mac", "GNU/Linux", "Windows", "BSD", "plan9", "Solaris"}
+local numbers = {"A", "B", "C"}
 
 local hsr = require "hsr"
 
