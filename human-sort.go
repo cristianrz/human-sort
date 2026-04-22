@@ -9,108 +9,102 @@ import (
 
 func main() {
 	var items []string
-
 	if err := getItems(&items); err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error reading items: %v\n", err)
+		os.Exit(1)
 	}
 
-	//fmt.Println(items)
-
-	items, err := sort(items)
+	sorted, err := mergesort(items)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error sorting: %v\n", err)
+		os.Exit(1)
 	}
 
-	fmt.Println("sorted:", items)
+	fmt.Println("\nRanking:")
+	for i, item := range sorted {
+		fmt.Printf("  %d. %s\n", i+1, item)
+	}
 }
 
-func sort(items []string) ([]string, error) {
-	n := float64(len(items))
-
-	if n < 2 {
+func mergesort(items []string) ([]string, error) {
+	if len(items) < 2 {
 		return items, nil
 	}
 
-	middle := int(math.Round(n / 2))
+	middle := int(math.Round(float64(len(items)) / 2))
 
-	left := items[0:middle]
-	left, err := sort(left)
+	left, err := mergesort(items[:middle])
 	if err != nil {
-		return items, err
+		return nil, err
 	}
 
-	right := items[middle:]
-	right, err = sort(right)
+	right, err := mergesort(items[middle:])
 	if err != nil {
-		return items, err
+		return nil, err
 	}
 
-	l := len(left)
-	r := len(right)
+	return merge(left, right)
+}
 
+func merge(left, right []string) ([]string, error) {
 	var sorted []string
 
-	for l+r != 0 {
-		//fmt.Println("left:", left)
-		//fmt.Println("right:", right)
-		if l == 0 {
-			sorted = append(sorted, right[0])
-			right = right[1:]
-		} else if r == 0 {
+	for len(left) > 0 && len(right) > 0 {
+		answer, err := compare(left[0], right[0])
+		if err != nil {
+			return nil, err
+		}
+
+		if answer == 1 {
 			sorted = append(sorted, left[0])
 			left = left[1:]
 		} else {
-			fmt.Println("[+] What is better")
-			fmt.Println("\t1)", left[0])
-			fmt.Println("\t2)", right[0])
-
-			var answer string
-
-			for answer != "1\n" && answer != "2\n" {
-				fmt.Printf("> ")
-				reader := bufio.NewReader(os.Stdin)
-				text, _ := reader.ReadString('\n')
-				//if err != nil {
-				//	panic(err)
-				//}
-
-				answer = text
-			}
-
-			switch answer {
-			case "2\n":
-				sorted = append(sorted, right[0])
-				right = right[1:]
-			case "1\n":
-				sorted = append(sorted, left[0])
-				left = left[1:]
-			default:
-				panic("unexpected answer")
-			}
+			sorted = append(sorted, right[0])
+			right = right[1:]
 		}
-
-		l = len(left)
-		r = len(right)
 	}
 
-	//fmt.Println("returning:", sorted)
+	sorted = append(sorted, left...)
+	sorted = append(sorted, right...)
+
 	return sorted, nil
 }
 
+func compare(a, b string) (int, error) {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Println("[+] Which is better?")
+		fmt.Printf("\t1) %s\n", a)
+		fmt.Printf("\t2) %s\n", b)
+		fmt.Printf("> ")
+
+		text, err := reader.ReadString('\n')
+		if err != nil {
+			return 0, fmt.Errorf("error reading input: %w", err)
+		}
+
+		switch text {
+		case "1\n":
+			return 1, nil
+		case "2\n":
+			return 2, nil
+		default:
+			fmt.Println("Please enter 1 or 2.")
+		}
+	}
+}
+
 func getItems(items *[]string) error {
-
-	fmt.Println("[+] Input every option in a separate line and after the last element, press Ctrl + D")
-
+	fmt.Println("Enter each option on a separate line. Press Ctrl+D when done.")
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		//fmt.Println("read:", scanner.Text())
-		*items = append(*items, scanner.Text())
+		line := scanner.Text()
+		if line != "" {
+			*items = append(*items, line)
+		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
+	return scanner.Err()
 }
