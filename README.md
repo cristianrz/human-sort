@@ -1,10 +1,10 @@
-# rank
+# human-sort
 
 Rank anything by answering pairwise comparisons.
 
-Given a list of options, `rank` asks you to compare them two at a time
-and produces a full ranking. It uses mergesort under the hood, so the
-number of questions is O(n log n) — the minimum possible for a
+Given a list of options, `human-sort` asks you to compare them two at a
+time and produces a full ranking. It uses mergesort under the hood, so
+the number of questions is O(n log n) — the minimum possible for a
 comparison-based sort.
 
 ## Use cases
@@ -17,13 +17,13 @@ comparison-based sort.
 ## Install
 
 ```sh
-go install github.com/cristianrz/rank@latest
+go install github.com/cristianrz/human-sort@latest
 ```
 
 ## Usage
 
 ```sh
-$ rank
+$ human-sort
 Enter each option on a separate line. Press Ctrl+D when done.
 Move to Berlin
 Take the remote job
